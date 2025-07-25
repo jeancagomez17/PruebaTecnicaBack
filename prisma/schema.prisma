@@ -1,0 +1,55 @@
+generator client {
+  provider      = "prisma-client-js"
+  enableTracing = "false"
+}
+
+datasource db {
+  provider = "sqlserver"
+  url      = env("DATABASE_URL")
+}
+
+model Nits {
+  NitDocumento     String     @id
+  NitNombre        String
+  NitApellido      String
+  NitCupo          Int?       @default(0)
+  NitPlazo         Int?       @default(0)
+  NitFechaCreacion DateTime?  @default(now())
+  Facturas         Facturas[]
+}
+
+model Articulos {
+  ArtCodigo          Int                  @id @default(autoincrement())
+  ArtNombre          String
+  ArtLaboratorio     String
+  ArtSaldo           Int?                 @default(0)
+  ArtCostos          Int?                 @default(0)
+  ArtPrecioVenta     Int?                 @default(0)
+  TransaccionFactura TransaccionFactura[]
+}
+
+model Facturas {
+  FacNumero           Int                  @id @default(autoincrement())
+  FacFecha            DateTime             @default(now())
+  FacNit              String
+  FacCostoTotal       Int?                 @default(0)
+  FacVentaTotal       Int?                 @default(0)
+  FacFechaVencimiento DateTime?
+  Nits                Nits                 @relation(fields: [FacNit], references: [NitDocumento])
+  TransaccionFactura  TransaccionFactura[]
+}
+
+model TransaccionFactura {
+  TranId             Int       @id @default(autoincrement())
+  TranFecha          DateTime  @default(now())
+  TranNumeroFactura  Int
+  TranCodigoArticulo Int
+  TranCostos         Int?
+  TranNaturaleza     String    @db.Char(1)
+  TranUnidades       Int?      @default(0)
+  TranPrecioVenta    Int?      @default(0)
+  TranTotalVenta     Int?      @default(0)
+  TranTotalCostos    Int?      @default(0)
+  articulo           Articulos @relation(fields: [TranCodigoArticulo], references: [ArtCodigo])
+  Facturas           Facturas  @relation(fields: [TranNumeroFactura], references: [FacNumero])
+}
